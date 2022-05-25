@@ -17,6 +17,10 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 app.get("/numbers", async (req: Request, res: Response) => {
+    if (req.method !== "GET") {
+        res.status(405).send("Method not allowed");
+        return;
+    }
     const { url } = req.query as { url: string[] };
     var validUrls: string[] = [];
 
@@ -51,6 +55,10 @@ app.get("/numbers", async (req: Request, res: Response) => {
 });
 
 app.get("/prefixes", async (req: Request, res: Response) => {
+    if (req.method !== "GET") {
+        res.status(405).send("Method not allowed");
+        return;
+    }
     const { keywords } = req.query as { keywords: string };
     const requestWords = keywords.split(",");
 
@@ -105,7 +113,7 @@ app.get("/prefixes", async (req: Request, res: Response) => {
 });
 
 app.listen(port, () => {
-    console.log("Example app listening on port", port);
+    console.log("listening on port", port);
 });
 
 const stringIsAValidUrl = (s: string, protocols: string[]) => {
