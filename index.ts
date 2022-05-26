@@ -1,5 +1,5 @@
 import axios from "axios";
-axios.defaults.timeout = 1000;
+axios.defaults.timeout = 400;
 import express, { Request, Response } from "express";
 import { URL } from "url";
 
@@ -34,17 +34,17 @@ app.get("/numbers", async (req: Request, res: Response) => {
 
     let numbers: number[] = [];
 
-    for (const link of validUrls) {
-        try {
-            await axios.get(link).then((response) => {
-                const { status } = response;
-                if (status === 200) {
-                    numbers = numbers.concat(response.data.numbers);
-                }
-            });
-        } catch (error) {
-            console.log(error);
-        }
+    try {
+        const promises: Promise<number[]>[] = [];
+        validUrls.map((link) => {
+            promises.push(fetchResFromUrl(link));
+        });
+        let responseData = await Promise.all(promises);
+        responseData.forEach((data) => {
+            numbers = numbers.concat(data);
+        });
+    } catch (error) {
+        console.log(error);
     }
 
     numbers = numbers
@@ -63,27 +63,34 @@ app.get("/prefixes", async (req: Request, res: Response) => {
     const requestWords = keywords.split(",");
 
     const storedKeyWords: string[] = [
-        "bearish",
-        "slobber",
-        "overhated",
-        "hellion",
-        "miscomputing",
-        "styluses",
-        "grandfathered",
-        "bleaches",
-        "repped",
-        "eremitic",
-        "provincialists",
-        "compradors",
-        "givens",
-        "carburises",
-        "scored",
-        "imperilling",
-        "funnelform",
-        "bimillennial",
-        "permute",
-        "weaponing",
+        "bonfire",
+        "cardio",
+        "case",
+        "character",
+        "bonsai",
     ];
+    // [
+    //     "bearish",
+    //     "slobber",
+    //     "overhated",
+    //     "hellion",
+    //     "miscomputing",
+    //     "styluses",
+    //     "grandfathered",
+    //     "bleaches",
+    //     "repped",
+    //     "eremitic",
+    //     "provincialists",
+    //     "compradors",
+    //     "givens",
+    //     "carburises",
+    //     "scored",
+    //     "imperilling",
+    //     "funnelform",
+    //     "bimillennial",
+    //     "permute",
+    //     "weaponing",
+    // ];
     let resJson: prefixesResType[] = [];
     for (const word of requestWords) {
         if (storedKeyWords.includes(word)) {
@@ -129,4 +136,20 @@ const stringIsAValidUrl = (s: string, protocols: string[]) => {
     } catch (err) {
         return false;
     }
+};
+
+const fetchResFromUrl = (url: string): Promise<number[]> => {
+    return axios
+        .get(url)
+        .then((response) => {
+            if (response.status === 200) {
+                return response.data.numbers;
+            } else {
+                return [];
+            }
+        })
+        .catch((error) => {
+            console.log(error);
+            return [];
+        });
 };
